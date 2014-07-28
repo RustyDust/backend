@@ -1,0 +1,44 @@
+{% extends "bootstrap/base.html" %}
+{% import "bootstrap/fixes.html" as fixes %}
+{% block styles %}
+{{super()}}
+<link rel="stylesheet"
+      href="{{url_for('.static', filename='dashboard.css')}}">
+{% endblock %}
+{% block navbar %}
+    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="/">ownTracks</a>
+        </div>
+        <div class="navbar-collapse collapse">
+        {% if cur_user is defined %}
+        <form action="/accounts/logout/" class="navbar-form pull-right" method="get">
+			<button class="btn btn-danger">Logout</button>
+		</form>
+		{% else %}
+		<form action="/accounts/login/" class="navbar-form pull-right" method="post">
+			<button class="btn btn-success">Login</button>
+		</form>
+		{% endif %}
+          <ul class="nav navbar-nav navbar-right">
+            {% if cur_user is defined %}
+            <li><a href="#">Friends</a></li>
+            <li><a href="/devicelist/{{ cur_user.username }}">Devices</a></li>
+            <li><a href="#">Settings</a></li>
+            <li><a href="#">Profile</a></li>
+            {% else %}
+            <li><a href="/register">Join</a></li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    </div>
+{% endblock %}
+
+{% block content %}{% endblock %}
+
+{% block head %}
+{{super()}}
+{{fixes.ie8()}}
+{% endblock %}

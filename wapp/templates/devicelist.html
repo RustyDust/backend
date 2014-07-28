@@ -1,0 +1,15 @@
+{% extends "base_layout.html" %}
+
+{% block title %}This is an example page{% endblock %}
+
+{% block content %}
+<div class="container">
+
+<h1>Hi {{ cur_user.username }}</h1>
+<h2>{% block content_title %}{% endblock %}</h2>
+
+{% for device in devices %}
+	<li>{{ device.device }}, {{ device.topic }}</li>
+{% endfor %}
+
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base_layout.html" %}
+
+{% block content %}
+<div class="container">
+
+<h1>Hi {{ cur_user.username }}</h1>
+<h2>{% block content_title %}{% endblock %}</h2>
+
+{% for user in users %}
+	<li>{{ user.username }}, {{ user.device }}, {{ user.topic }}</li>
+{% endfor %}
+
+</div>
+{% endblock %}
