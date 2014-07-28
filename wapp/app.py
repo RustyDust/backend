@@ -1,5 +1,6 @@
 # http://charlesleifer.com/blog/structuring-flask-apps-a-how-to-for-those-coming-from-django/
 
+import os
 from flask import Flask
 from flask_bootstrap import Bootstrap
 
@@ -8,8 +9,12 @@ from flask_peewee.db import Database
 
 app = Flask(__name__)
 Bootstrap(app)
-app.config.from_envvar('WAPP_SETTINGS', silent=False)
 
+if os.getenv('WAPP_SETTINGS'):
+    app.config.from_envvar('WAPP_SETTINGS', silent=False)
+else:
+    app.config.from_pyfile('owntracks.cfg', silent=False)
+    
 db = Database(app)
 
 # Here I would set up the cache, a task queue, etc.

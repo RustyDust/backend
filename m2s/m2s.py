@@ -42,6 +42,9 @@ num_workers = 1
 
 LOGFILE = cf.get('logfile', 'logfile')
 LOGFORMAT = '%(asctime)-15s %(message)s'
+
+PLUGINDIR = cf.get('plugin_dir', 'plugins')
+
 DEBUG=True
 
 if DEBUG:
@@ -67,7 +70,7 @@ def load_plugins(plugin_list, m2s):
     for p in plugin_list:
         if 'column' in p and 'filename' in p:
             colname = p['column']
-            filename = p['filename']
+            filename = "%s/%s" % (PLUGINDIR, p['filename'])
 
             try:
                 p['mod'] = load_module(filename)

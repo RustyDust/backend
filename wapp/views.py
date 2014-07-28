@@ -25,6 +25,45 @@ class Jform(Form):
     submit_button = SubmitField('Submit Form')
 
 @app.route('/', methods = ['GET', 'POST'])
+def start():
+    # Determine whether user is logged in and redirect if not
+    me = auth.get_logged_in_user()
+    if me:
+        if me.username == 'admin' or me.admin:
+            return show_userlist()
+        else:
+            return show_user_devices(me.username)
+    else:
+        return render_template('welcome.html')
+
+@app.route('/userlist')
+@app.route('/userlist/')
+@auth.login_required
+def show_userlist():
+    if auth.get_logged_in_user().admin:
+        user_list = Location.select(Location.username, Location.device, Location.topic).distinct().order_by(Location.username.asc())
+        return render_template('userlist.html', users = user_list, cur_user = auth.get_logged_in_user())
+    else:
+        # Only admins can get the full userlist
+        # so go away. shoo, shoo.
+        return redirect('/devicelist/%s' % auth.get_logged_in_user().username, 302)
+
+@app.route('/devicelist')
+@app.route('/devicelist/')
+@auth.login_required
+def check_and_redirect():
+    if auth.get_logged_in_user():
+        return redirect('/devicelist/%s' % auth.get_logged_in_user().username, 302)
+    else:
+        return redirect('/')
+
+@app.route('/devicelist/<username>')
+@auth.login_required
+def show_user_devices(username):
+    device_list = Location.select(Location.device, Location.topic).distinct().where(Location.username == username).order_by(Location.device.asc())
+    return render_template('devicelist.html', devices = device_list, cur_user = auth.get_logged_in_user())
+
+@app.route('/oldroot', methods = ['GET', 'POST'])
 def mainpage():
     
     form = Jform()
@@ -51,17 +90,34 @@ def mainpage():
         flash('Thanks, babe!')
         return redirect(url_for('mainpage'))
 
-
-
-
     return render_template('welcome.html', form=form)
 
+@app.route('/register')
+def register_new_user():
+    if request.method == 'POST' and request.form['username']:
+        try:
+            user = User.select().where(User.username==request.form['username']).get()
+            flash('That username is already taken')
+        except User.DoesNotExist:
+            user = User(
+                username=request.form['username'],
+                email=request.form['email'],
+                join_date=datetime.datetime.now()
+            )
+            user.set_password(request.form['password'])
+            user.save()
+
+            auth.login_user(user)
+            return redirect(url_for('start'))
+
+    return render_template('register.html')
+    
 @app.route('/list')
-def hello_world():
-    username = 'jpm'
-    device = '5s'
+def hello_world(cur_user):
+    username = 'stefan'
+    device = 'Note3'
     from_date = '2013-10-08'
-    to_date = '2013-12-31'
+    to_date = '2015-12-31'
 
     query = Location.select().where(
                 (Location.username == username) &

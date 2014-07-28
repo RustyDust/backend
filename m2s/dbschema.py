@@ -11,18 +11,27 @@ except Exception, e:
     print "Can't load configuration: %s" % (str(e))
     sys.exit(1)
 
-mysql_db = MySQLDatabase(cf.get('dbname', 'owntracks'),
-    user=cf.get('dbuser'),
-    passwd=cf.get('dbpasswd'),
-    port=cf.get('dbport', 3306),
-    threadlocals=True)
+DBTYPE = cf.get('dbtype', 'sqlite3')        # Sorry ;)
 
-class MySQLModel(Model):
+if DBTYPE == 'sqlite3':
+    store_db = SqliteDatabase('%s/%s.sq3' % (cf.get('dbpath', 'db'), cf.get('dbname', 'owntrack.db')), 
+                              threadlocals=True)
+elif DBTYPE == 'mysql':
+    store_db = MySQLDatabase(cf.get('dbname', 'owntracks'),
+                             user=cf.get('dbuser'),
+                             passwd=cf.get('dbpasswd'),
+                             port=cf.get('dbport', 3306),
+                             threadlocals=True)
+else:
+    print "No supported database found, must be either 'sqlite3' or 'mysql'"
+    sys.exit(1)
+    
+class StoreSQLModel(Model):
 
     class Meta:
-        database = mysql_db
+        database = store_db
 
-class Location(MySQLModel):
+class Location(StoreSQLModel):
     topic           = BlobField(null=False)
     username        = CharField(null=False)
     device          = CharField(null=False)
@@ -39,7 +48,7 @@ class Location(MySQLModel):
     weather         = CharField(null=True)
     revgeo          = CharField(null=True)
 
-class Waypoint(MySQLModel):
+class Waypoint(StoreSQLModel):
     topic           = BlobField(null=False)
     username        = CharField(null=False)
     device          = CharField(null=False)
@@ -56,7 +65,7 @@ class Waypoint(MySQLModel):
         )
 
 if __name__ == '__main__':
-    mysql_db.connect()
+    store_db.connect()
 
     try:
         Location.create_table(fail_silently=True)

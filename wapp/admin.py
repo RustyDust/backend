@@ -6,7 +6,19 @@ from auth import auth
 from models import User, Location, Acl
 from pbkdf2 import hashing_passwords as hp
 
-admin = Admin(app, auth, branding='MQTTitude')
+admin = Admin(app, auth, branding='ownTracks')
+
+# Check for existing admin user and in none
+# exists create one
+# TODO: Show flash message for newly created
+# admin user
+try:
+    test_admin = User.get(User.username == 'admin')
+except: 
+    # No Admin user yet, so create one
+    test_admin = auth.User(username='admin', email='', admin=True, active=True, superuser=True)
+    test_admin.set_password('admin')
+    test_admin.save()
 
 # or you could admin.register(User, ModelAdmin) -- you would also register
 # any other models here.
@@ -22,18 +34,20 @@ class UserAdmin(ModelAdmin):
 
     def save_model(self, instance, form, adding=False):
         orig_password = instance.password
-
-        pbkdf2 = hp.make_hash(instance.password)
-        print "***** ", instance.password, pbkdf2
-        print "----- ", orig_password, form.password.data
-
         user = super(UserAdmin, self).save_model(instance, form, adding)
-
-        user.pbkdf2 = pbkdf2
         if orig_password != form.password.data:
                 user.set_password(form.password.data)
         user.save()
-
+        
+    # 
+    #     pbkdf2 = hp.make_hash(instance.password)
+    #     print "***** ", instance.password, pbkdf2
+    #     print "----- ", orig_password, form.password.data
+    # 
+    #     user = super(UserAdmin, self).save_model(instance, form, adding)
+    # 
+    #     user.pbkdf2 = pbkdf2
+    # 
         return user
 
 class AclAdmin(ModelAdmin):
